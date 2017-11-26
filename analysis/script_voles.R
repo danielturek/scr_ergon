@@ -15,6 +15,8 @@ inits <- inits_reduced
 
 
 
+message('starting NIMBLE')
+
 
 
 
@@ -100,10 +102,13 @@ code <- nimbleCode({
 
 
 
+
+
 modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
 out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)
 save(out_jags, file = saveFile)
 
+message('finished JAGS')
 
 
 modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
@@ -111,6 +116,7 @@ out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)
 save(out_jags, out_nimble, file = saveFile)
 
 
+message('finished NIMBLE')
 
 
 
@@ -223,6 +229,7 @@ save(out_jags, out_nimble, out_dSCR1, file = saveFile)
 
 
 
+message('finished SCR1')
 
 
 
@@ -343,6 +350,7 @@ save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = saveFile)
 
 
 
+message('finished SCR2')
 
 
 
