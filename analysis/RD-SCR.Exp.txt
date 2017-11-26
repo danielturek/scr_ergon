@@ -1,0 +1,98 @@
+
+model{
+## PRIORS AND CONSTRAINTS: ##
+#  Space use and recapture probability parameters:
+for(sex in 1:2){
+  kappa[sex] ~ dunif(0,50)
+  sigma[sex] ~ dunif(0.1,20)
+}
+for(sex in 1:2){
+  for(TOD in 1:2){
+    lambda[TOD, sex] <- exp(log.lambda0) * pow(beta[1],(TOD-1)) * pow(beta[2],(sex-1))
+  }
+}
+PL ~ dunif(0.01,0.99)
+log.lambda0 <- log(-log(1-PL)) 
+beta[1] ~ dunif(0.1,10)
+beta[2] ~ dunif(0.1,10)
+# Survival parameters:
+for(sex in 1:2){
+  Phi[sex] ~ dunif(0,1)
+  for(k in 1:(n.prim-1)){
+    phi[sex,k] <- pow(Phi[sex], dt[k])
+  }
+}
+# Dispersal parameters:
+for(sex in 1:2){
+  dmean[sex] ~ dunif(0,100)
+  dlambda[sex] <- 1/dmean[sex]
+# For zero-inflated model:  
+#  d.offset[sex] ~ dunif(5,100)
+#  Psi0[sex] ~ dunif(0,1)
+#  for(k in 1:(n.prim-1)){
+#    psi[sex,k] <- 1 - pow(Psi0[sex], dt[k])
+#  }
+}
+## MODEL: ##
+# Loop over individuals that are only seen in the last primary session or the
+# session they are censored
+for(i in 1:N[1]){
+  z[i,first[i]] ~ dbern(1)
+  S[i,1,first[i]] ~ dunif(xlow[i], xupp[i]) # Prior for the first x coordinate
+  S[i,2,first[i]] ~ dunif(ylow[i], yupp[i]) # Prior for the first y coordinate
+  g[i,first[i],1] <- 0
+  for(r in 1:R){ # trap
+      D[i,r,first[i]] <- sqrt(pow(S[i,1,first[i]]-X[r,1],2) + pow(S[i,2,first[i]]-X[r,2],2))
+      g[i,first[i],r+1] <- exp(-pow(D[i,r,first[i]]/sigma[gr[i]], kappa[gr[i]])) # Trap exposure
+  }
+  G[i,first[i]] <- sum(g[i,first[i],]) # Total trap exposure
+  for(j in 1:J[i,first[i]]){
+      P[i,j,first[i]] <- 1 - exp(-lambda[tod[first[i],j],gr[i]]*G[i,first[i]]) # Probability of being captured
+      PPII[i,first[i],j] <- step(H[i,j,first[i]]-2)*(g[i,first[i],H[i,j,first[i]]]/(G[i,first[i]]+ 0.000000001))*P[i,j,first[i]] + (1-step(H[i,j,first[i]]-2))*(1-P[i,j,first[i]])
+      Ones[i,j,first[i]] ~ dbern(PPII[i,first[i],j])
+  }
+}
+# Loop over all other individuals
+for(i in (N[1]+1):N[2]){
+  z[i,first[i]] ~ dbern(1)
+  S[i,1,first[i]] ~ dunif(xlow[i], xupp[i]) # Prior for the first x coordinate
+  S[i,2,first[i]] ~ dunif(ylow[i], yupp[i]) # Prior for the first y coordinate
+  # First primary session:
+  g[i,first[i],1] <- 0
+  for(r in 1:R){ # trap
+      D[i,r,first[i]] <- sqrt(pow(S[i,1,first[i]]-X[r,1],2) + pow(S[i,2,first[i]]-X[r,2],2))
+      g[i,first[i],r+1] <- exp(-pow(D[i,r,first[i]]/sigma[gr[i]], kappa[gr[i]])) # Trap exposure
+  }
+  G[i,first[i]] <- sum(g[i,first[i],]) # Total trap exposure
+  for(j in 1:J[i,first[i]]){
+      P[i,j,first[i]] <- 1 - exp(-lambda[tod[first[i],j],gr[i]]*G[i,first[i]]) # Probability of being captured
+      PPII[i,first[i],j] <- step(H[i,j,first[i]]-2)*(g[i,first[i],H[i,j,first[i]]]/(G[i,first[i]]+ 0.000000001))*P[i,j,first[i]] + (1-step(H[i,j,first[i]]-2))*(1-P[i,j,first[i]])
+      Ones[i,j,first[i]] ~ dbern(PPII[i,first[i],j])
+  }
+  ## Later primary sessions
+  for(k in (first[i]+1):K[i]){ # primary session
+    theta[i,k-1] ~ dunif(-3.141593,3.141593) # Prior for dispersal direction 
+    z[i,k] ~ dbern(Palive[i,k-1])
+    Palive[i,k-1] <- z[i,k-1]*phi[gr[i],k-1] # Pr(alive in primary session k) gr[i] = sex
+    d[i,k-1] ~ dexp(dlambda[gr[i]])
+    # For zero-inflated model, replace line above with:
+    #u[i,k-1] ~ dbern(psi[gr[i],k-1])
+    #dd[i,k-1] ~ dexp(dlambda[gr[i]])
+    #d[i,k-1] <- u[i,k-1]*(d.offset[gr[i]] + dd[i,k-1])
+    S[i,1,k] <- S[i,1,k-1] + d[i,k-1]*cos(theta[i,k-1])
+    S[i,2,k] <- S[i,2,k-1] + d[i,k-1]*sin(theta[i,k-1])
+    g[i,k,1] <- 0
+    for(r in 1:R){ # trap
+      D[i,r,k] <- sqrt(pow(S[i,1,k]-X[r,1],2) + pow(S[i,2,k]-X[r,2],2))  # Squared distance to trap
+      g[i,k,r+1] <- exp(-pow(D[i,r,k]/sigma[gr[i]], kappa[gr[i]])) # Trap exposure
+    }
+    G[i,k] <- sum(g[i,k,]) # Total trap exposure
+    for(j in 1:J[i,k]){
+      P[i,j,k] <- (1 - exp(-lambda[tod[k,j],gr[i]]*G[i,k]))*z[i,k] # Probability of being captured
+      PPII[i,k,j] <- step(H[i,j,k]-2)*(g[i,k,H[i,j,k]]/(G[i,k] + 0.000000001))*P[i,j,k] + (1-step(H[i,j,k]-2))*(1-P[i,j,k])
+      Ones[i,j,k] ~ dbern(PPII[i,k,j])
+    }
+  }
+}
+}
+
