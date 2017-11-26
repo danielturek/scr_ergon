@@ -20,7 +20,9 @@ message('starting NIMBLE')
 
 
 
-library(nimble)
+if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
+
+
 
 code <- nimbleCode({
     for(sex in 1:2){
@@ -357,7 +359,7 @@ message('finished SCR2')
 if(TRUE) {
     
     load(saveFile)
-    library(nimble)
+    if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
 
     ## rename results
     out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
