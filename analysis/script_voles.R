@@ -343,7 +343,10 @@ save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = saveFile)
 
 
 
-if(FALSE) {
+
+
+
+if(TRUE) {
     
     load(saveFile)
     library(nimble)
@@ -358,7 +361,7 @@ if(FALSE) {
     ## make comparison pages
     make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
 
-    system('open pages/MCMCresults.html')
+    ##system('open pages/MCMCresults.html')
 
 }
 
