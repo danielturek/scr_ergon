@@ -358,6 +358,7 @@ message('finished SCR2')
 
 if(TRUE) {
     
+    saveFile <- 'results_reduced.RData'    
     load(saveFile)
     if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
 
@@ -366,14 +367,19 @@ if(TRUE) {
     out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
 
     ## combine results
-    results <- combine_MCMC_comparison_results(out_jags, out_nimble, out_dSCR1, out_dSCR2)
+    results <- combine_MCMC_comparison_results(out_jags[[1]], out_nimble[[1]], out_dSCR1[[1]], out_dSCR2[[1]])
 
     ## make comparison pages
     make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
 
+    ##make_MCMC_comparison_pages(results, dir = 'pages')##, pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
+
     ##system('open pages/MCMCresults.html')
 
 }
+
+
+
 
 
 
