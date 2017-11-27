@@ -294,21 +294,57 @@ dSCR2 <- nimbleFunction(
         lambda = double(1), tod = double(2),
         g = double(2), G = double(1), z = double(1), phi = double(1),
         log = double()) {
+        pDead <- 0
         pAlive <- 1
         lp <- 0
         ## probability of surviving from k to (k+1): phi[k]
-        for(k in first:last) {    # primary session
-            if(z[k] == 0)   pAlive <- pAlive * phi[k-1]
-            for(j in 1:J[k]) {    # secondary session
-                ## PnoCapture|alive = exp(-lambda[tod[k,j]] * G[k])
-                PnoCapture <- (1-pAlive) + (pAlive)*exp(-lambda[tod[k,j]] * G[k])
-                if(x[j,k] == 1) {    # not captured
-                    lp <- lp + log(PnoCapture)
-                } else {             # captured
-                    lp <- lp + log(1-PnoCapture) + log(g[k, x[j,k]-1]) - log(G[k])
+        for(k in first:last) {
+            if(z[k] == 1) {    # known to be alive
+                for(j in 1:J[k]) {
+                    PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
+                    if(k > first)       # survived
+                        lp <- lp + log(phi[k-1])
+                    if(x[j,k] == 1) {   # not captured
+                        lp <- lp + log(PnoCaptureGivenAlive)
+                    } else {            # captured
+                        lp <- lp + log(1-PnoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
+                    }
                 }
+            } else {           # could be dead or alive
+                pTheseNonSightings <- 1
+                for(j in 1:J[k]) {
+                    if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
+                    if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
+                    pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
+                }
+                pDead <- pDead + pAlive * (1-phi[k-1])
+                pAlive <- pAlive * phi[k-1] * pTheseNonSightings
             }
         }
+        lp <- lp + log(pDead + pAlive)
+        ##            for(j in 1:J[k]) {    # secondary session
+        ##                ## PnoCapture|not alive = 1
+        ##                ## PnoCapture|alive = exp(-lambda[tod[k,j]] * G[k])
+        ##                pTheseNonSightings <- 1
+        ##                PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
+        ##                if(z[k] == 1) {    # known to be alive
+        ##                    if(k > first)       # survived
+        ##                        lp <- lp + log(phi[k-1])
+        ##                    if(x[j,k] == 1) {   # not captured
+        ##                        lp <- lp + log(PnoCaptureGivenAlive)
+        ##                    } else {            # captured
+        ##                        lp <- lp + log(1-PnoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
+        ##                    }
+        ##                } else {           # could be dead or alive
+        ##                    if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
+        ##                    if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
+        ##                    pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
+        ##                }
+        ##            }
+        ##            pDead <- pDead + pAlive * (1-phi[k-1])
+        ##            pAlive <- pAlive * phi[k-1] * pTheseNonSightings
+        ##        }
+        ##        lp <- lp + log(pDead + pAlive)
         returnType(double())
         if(log) return(lp) else return(exp(lp))
     }
@@ -336,7 +372,7 @@ registerDistributions(list(
 
 
 constants_dSCR2 <- constants[c('R', 'J', 'tod', 'first', 'X',
-                                       'dt', 'gr', 'xlow', 'xupp', 'ylow', 'yupp')]
+                               'dt', 'gr', 'xlow', 'xupp', 'ylow', 'yupp')]
 constants_dSCR2$z          <- inits$z
 constants_dSCR2$last       <- constants$K
 constants_dSCR2$nInd       <- dim(constants$H)[1]
