@@ -586,6 +586,7 @@ t1 <- Sys.time()
 set.seed(0)
 out <- coda.samples(jags, variable.names = params, n.iter = niter, thin = 1)
 t2 <- Sys.time()
+
 runtime <- as.numeric(difftime(t2, t1, units = 'secs'))
 runtime  ## don't know the runtime... ?
 
