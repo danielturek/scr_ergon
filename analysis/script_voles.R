@@ -313,8 +313,8 @@ dSCR2 <- nimbleFunction(
             } else {           # could be dead or alive
                 pTheseNonSightings <- 1
                 for(j in 1:J[k]) {
-                    if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
-                    if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
+                    ##if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
+                    ##if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
                     pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
                 }
                 pDead <- pDead + pAlive * (1-phi[k-1])
