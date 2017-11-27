@@ -8,11 +8,11 @@ for(sex in 1:2){
 }
 for(sex in 1:2){
   for(TOD in 1:2){
-    lambda[TOD, sex] <- exp(log.lambda0) * pow(beta[1],(TOD-1)) * pow(beta[2],(sex-1))
+    lambda[TOD, sex] <- lambda0 * pow(beta[1],(TOD-1)) * pow(beta[2],(sex-1))
   }
 }
 PL ~ dunif(0.01,0.99)
-log.lambda0 <- log(-log(1-PL)) 
+lambda0 <- -log(1-PL) 
 beta[1] ~ dunif(0.1,10)
 beta[2] ~ dunif(0.1,10)
 # Survival parameters:
