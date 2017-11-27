@@ -289,8 +289,10 @@ dSCR2 <- nimbleFunction(
         lambda = double(1), tod = double(2),
         g = double(2), G = double(1), z = double(1), phi = double(1),
         log = double()) {
-        pDead <- 0
+#############pDead <- 0
+#############pAlive <- 1
         pAlive <- 1
+        pDead <- 0
         lp <- 0
         ## probability of surviving from k to (k+1): phi[k]
         for(k in first:last) {
@@ -313,11 +315,17 @@ dSCR2 <- nimbleFunction(
                     PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
                     pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
                 }
-                pDead <- pDead + pAlive * (1-phi[k-1])
-                pAlive <- pAlive * phi[k-1] * pTheseNonSightings
+###############pDead <- pDead + pAlive * (1-phi[k-1])
+###############pAlive <- pAlive * phi[k-1] * pTheseNonSightings
+                pAlive_new <- phi[k-1] * pAlive
+                pDead_new <- (1-phi[k-1]) * pAlive + pDead
+                L <- pAlive_new * pTheseNonSightings + pDead_new
+                pAlive <- (pAlive_new * pTheseNonSightings) / L
+                pDead <- pDead_new / L
+                lp <- lp + log(L)
             }
         }
-        lp <- lp + log(pDead + pAlive)
+###########lp <- lp + log(pDead + pAlive)
         ##            for(j in 1:J[k]) {    # secondary session
         ##                ## PnoCapture|not alive = 1
         ##                ## PnoCapture|alive = exp(-lambda[tod[k,j]] * G[k])
@@ -345,6 +353,7 @@ dSCR2 <- nimbleFunction(
         if(log) return(lp) else return(exp(lp))
     }
 )
+
 
 rSCR2 <- nimbleFunction(
     run = function(n = integer(),
