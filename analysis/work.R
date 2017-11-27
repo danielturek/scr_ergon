@@ -579,8 +579,8 @@ t2 <- Sys.time()
 as.numeric(difftime(t2, t1, units = 'secs'))  ## 1056 seconds = 17.6 minutes
 
 ## Parameters to monitor
-##params = c("kappa", "sigma", "log.lambda0", "beta", "Psi0", "psi", "dmean", "phi", "Phi", "d.offset")
-params = c("kappa", "sigma", "log.lambda0", "beta", "dmean", "phi", "Phi")
+##params = c("kappa", "sigma", "lambda0", "beta", "Psi0", "psi", "dmean", "phi", "Phi", "d.offset")
+params = c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
 
 t1 <- Sys.time()
 set.seed(0)
