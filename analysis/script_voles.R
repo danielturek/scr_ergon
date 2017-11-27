@@ -1,7 +1,8 @@
 
 setwd('~/github/scr_ergon/analysis')
 
-niter <- 3000
+##niter <- 3000
+niter <- 20000
 
 saveFile <- 'results_reduced.RData'
 monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
