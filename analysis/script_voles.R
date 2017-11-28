@@ -379,7 +379,9 @@ message('finished SCR2')
 
 
 if(FALSE) {
-    
+
+    ## making comparison pages for everything (in 'results_all.RData')
+    ## jags, nimble, dSCR1, dSCR2
     setwd('~/github/scr_ergon/analysis')
     ls()
     load('results_all.RData')
@@ -392,8 +394,7 @@ if(FALSE) {
     results <- combine_MCMC_comparison_results(out_jags[[1]], out_nimble[[1]], out_dSCR1[[1]], out_dSCR2[[1]])
     ## make comparison pages
     make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
-
-    ##system('open pages/MCMCresults.html')
+    system('open pages/MCMCresults.html')
 
     ## without jags:
     setwd('~/github/scr_ergon/analysis')
@@ -431,7 +432,6 @@ if(FALSE) {
     
 
 }
-
 
 
 
