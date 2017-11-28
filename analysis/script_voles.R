@@ -431,6 +431,27 @@ if(FALSE) {
     save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = 'results_all.RData')
     
 
+
+    rrr
+    setwd('~/github/scr_ergon/analysis')
+    ls()
+    load('results_noJags.RData')
+    ls()
+    out_nimble$nimble$timing
+    out_dSCR1$SCR1$timing
+    out_dSCR2$SCR2$timing
+    out_dSCR2_save <- out_dSCR2
+    rrr
+    load('results_reduced.RData')   ## dSCR2 is wrong here
+    ls()
+    out_nimble$nimble$timing
+    out_dSCR1$SCR1$timing
+    out_dSCR2$SCR2$timing
+    out_jags$jags$timing
+    out_dSCR2 <- out_dSCR2_save
+    save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = 'results_all.RData')
+
+
 }
 
 
