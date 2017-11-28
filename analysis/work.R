@@ -618,6 +618,52 @@ samplesPlot(samples)
 library(coda)
 apply(samples, 2, effectiveSize)
 
+setwd('~/github/scr_ergon/analysis')
+load('results_reduced.RData')
+class(out_jags)
+names(out_jags)
+class(out_jags$jags)
+names(out_jags$jags)
+#[1] "summary"    "timing"     "efficiency"
+dimnames(out_jags$jags$summary)
+out_jags$jags$timing
+dim(out_jags$jags$summary)
+dimnames(out_jags$jags$summary)[[3]]
+dimnames(out_jags$jags$summary)[[2]]
+#[1] "mean"       "median"     "sd"         "CI95_low"   "CI95_upp"   "n"         
+#[7] "ess"        "efficiency"
+orig_jags_colnames <- colnames(samples)
+updated_colnames <- gsub(',', ', ', orig_jags_colnames)
+colnames(samples) <- updated_colnames
+identical(sort(colnames(samples)), sort(dimnames(out_jags$jags$summary)[[3]]))
+out_jags_colnames <- dimnames(out_jags$jags$summary)[[3]]
+out_jags_colnames
+## I changed the column names of JAGS samples to be correct (but wrong order)
+out_jags$jags$summary[1,'mean',] <- apply(samples, 2, mean)[out_jags_colnames]
+out_jags$jags$summary[1,'median',] <- apply(samples, 2, median)[out_jags_colnames]
+out_jags$jags$summary[1,'sd',] <- apply(samples, 2, sd)[out_jags_colnames]
+out_jags$jags$summary[1,'CI95_low',] <- apply(samples, 2, function(x) quantile(x, 0.025))[out_jags_colnames]
+out_jags$jags$summary[1,'CI95_upp',] <- apply(samples, 2, function(x) quantile(x, 0.975))[out_jags_colnames]
+out_jags$jags$summary[1,'n',] <- nrow(samples)
+out_jags$jags$summary[1,'ess',] <- apply(samples, 2, effectiveSize)[out_jags_colnames]
+out_jags$jags$summary[1,'efficiency',] <- apply(samples, 2, effectiveSize)[out_jags_colnames] / runtime
+##
+out_jags$jags$timing['jags'] <- runtime
+out_jags$jags$timing
+##
+out_jags$jags$efficiency$min <- min(out_jags$jags$summary[1,'efficiency',])
+out_jags$jags$efficiency$mean <- mean(out_jags$jags$summary[1,'efficiency',])
+names(out_jags$jags$efficiency$min) <- 'jags'
+names(out_jags$jags$efficiency$mean) <- 'jags'
+out_jags$jags$efficiency
+out_jags$jags$efficiency$min
+out_jags$jags$efficiency$mean
+##
+save(out_jags, file = 'results_jags.RData')
+##
+1
+
+
 
 
 ################################################################################################
