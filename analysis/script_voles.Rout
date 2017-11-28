@@ -162,3 +162,379 @@ Graph information:
 
 Initializing model
 
+> save(out_jags, file = saveFile)
+> 
+> message('finished JAGS')
+finished JAGS
+> 
+> 
+> modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
+> out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)
+Working on nimble 
+defining model...
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+|-------------|-------------|-------------|-------------|
+|-------------------------------------------------------|
+> save(out_jags, out_nimble, file = saveFile)
+> 
+> 
+> message('finished NIMBLE')
+finished NIMBLE
+> 
+> 
+> 
+> 
+> code_dSCR1 <- nimbleCode({
++     ## space use and recapture probability parameters
++     PL ~ dunif(0.01, 0.99)
++     lambda0 <- -log(1-PL)
++     for(sex in 1:2) {
++         kappa[sex] ~ dunif(0,   50)
++         sigma[sex] ~ dunif(0.1, 20)
++         beta[sex]  ~ dunif(0.1, 10)    # misnomer: beta[1] is coeff of tod, beta[2] is coeff of sex
++         for(TOD in 1:2) {
++             lambda[TOD, sex] <- lambda0 * beta[1]^(TOD-1) * beta[2]^(sex-1)
++         }
++         ## survival parameters
++         Phi[sex] ~ dunif(0, 1)
++         for(k in 1:(nPrimary-1)) {
++             phi[sex, k] <- Phi[sex]^dt[k]
++         }
++         ## dispersal parameters
++         dmean[sex] ~ dunif(0, 100)
++         dlambda[sex] <- 1/dmean[sex]
++     }
++     for(i in 1:nInd) {
++         S[i, 1, first[i]] ~ dunif(xlow[i], xupp[i])  # initial center of activity (x)
++         S[i, 2, first[i]] ~ dunif(ylow[i], yupp[i])  # initial center of activity (y)
++         z[i, first[i]] <- 1
++         for(k in first[i]:last[i]) {
++             D[i, k, 1:R] <- sqrt((S[i, 1, k] - X[1:R, 1])^2 + (S[i, 2, k] - X[1:R, 2])^2)
++             g[i, k, 1:R] <- exp(-(D[i, k, 1:R]/sigma[gr[i]])^kappa[gr[i]])  # trap exposure
++             G[i, k] <- sum(g[i, k, 1:R])                                    # total trap exposure
++         }
++         for(k in first[i]:(last[i]-1)) {
++             theta[i, k] ~ dunif(-3.141593, 3.141593)   # dispersal direction
++             d[i, k] ~ dexp(dlambda[gr[i]])
++             S[i, 1, k+1] <- S[i, 1, k] + d[i, k] * cos(theta[i, k])
++             S[i, 2, k+1] <- S[i, 2, k] + d[i, k] * sin(theta[i, k])
++             Palive[i, k] <- z[i, k] * phi[gr[i], k]
++             z[i, k+1] ~ dbern(Palive[i, k])
++         }
++         ## likelihood
++         H[i, 1:nSecondary, 1:nPrimary] ~ dSCR1(
++             first = first[i], last = last[i], J = J[i,1:nPrimary],
++             lambda = lambda[1:2,gr[i]], tod = tod[1:nPrimary,1:nSecondary],
++             g = g[i,1:nPrimary,1:R], G = G[i,1:nPrimary], z = z[i,1:nPrimary])
++     }
++ })
+> 
+> ## define custom distribution
+> dSCR1 <- nimbleFunction(
++     run = function(x = double(2),
++         first = double(), last = double(), J = double(1),
++         lambda = double(1), tod = double(2),
++         g = double(2), G = double(1), z = double(1),
++         log = double()) {
++         lp <- 0
++         for(k in first:last) {    # primary session
++             for(j in 1:J[k]) {    # secondary session
++                 logPnoCapture <- -lambda[tod[k,j]] * G[k] * z[k]
++                 if(x[j,k] == 1) {    # not captured
++                     lp <- lp + logPnoCapture
++                 } else {             # captured
++                     lp <- lp + log(1-exp(logPnoCapture)) + log(g[k, x[j,k]-1]) - log(G[k])
++                 }
++             }
++         }
++         returnType(double())
++         if(log) return(lp) else return(exp(lp))
++     }
++ )
+> 
+> rSCR1 <- nimbleFunction(
++     run = function(n = integer(),
++         first = double(), last = double(), J = double(1),
++         lambda = double(1), tod = double(2),
++         g = double(2), G = double(1), z = double(1)) {
++         x <- array(1, c(dim(tod)[2], dim(tod)[1]))
++         returnType(double(2))
++         return(x)
++     }
++ )
+> 
+> registerDistributions(list(
++     dSCR1 = list(
++         BUGSdist = 'dSCR1(first, last, J, lambda, tod, g, G, z)',
++         types = c('value = double(2)', 'first = double()', 'last = double()', 'J = double(1)', 'lambda = double(1)', 'tod = double(2)', 'g = double(2)', 'G = double(1)', 'z = double(1)'),
++         discrete = TRUE,
++         mixedSizes = TRUE
++     )
++ ))
+Registering the following user-provided distributions: dSCR1 .
+> 
+> 
+> constants_dSCR1 <- constants[c('R', 'J', 'tod', 'first', 'X',
++                                        'dt', 'gr', 'xlow', 'xupp', 'ylow', 'yupp')]
+> constants_dSCR1$last       <- constants$K
+> constants_dSCR1$nInd       <- dim(constants$H)[1]
+> constants_dSCR1$nPrimary   <- dim(constants$H)[3]
+> constants_dSCR1$nSecondary <- dim(constants$H)[2]
+> data_dSCR1 <- list(H=constants$H)
+> inits_dSCR1 <- inits
+> 
+> 
+> 
+> 
+> modelInfo_dSCR1 <- list(code = code_dSCR1, constants = constants_dSCR1, data=data_dSCR1, inits = inits_dSCR1, name = 'SCR1')
+> out_dSCR1 <- compareMCMCs(modelInfo=modelInfo_dSCR1, monitors=monitors, niter=niter)
+Working on SCR1 
+defining model...
+Adding J,tod,X as data for building model.
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+warning: value of right hand side only node not initialized
+|-------------|-------------|-------------|-------------|
+|-------------------------------------------------------|
+> save(out_jags, out_nimble, out_dSCR1, file = saveFile)
+> 
+> 
+> 
+> 
+> message('finished SCR1')
+finished SCR1
+> 
+> 
+> 
+> 
+> 
+> 
+> code_dSCR2 <- nimbleCode({
++     ## space use and recapture probability parameters
++     PL ~ dunif(0.01, 0.99)
++     lambda0 <- -log(1-PL)
++     for(sex in 1:2) {
++         kappa[sex] ~ dunif(0,   50)
++         sigma[sex] ~ dunif(0.1, 20)
++         beta[sex]  ~ dunif(0.1, 10)    # misnomer: beta[1] is coeff of tod, beta[2] is coeff of sex
++         for(TOD in 1:2) {
++             lambda[TOD, sex] <- lambda0 * beta[1]^(TOD-1) * beta[2]^(sex-1)
++         }
++         ## survival parameters
++         Phi[sex] ~ dunif(0, 1)
++         for(k in 1:(nPrimary-1)) {
++             phi[sex, k] <- Phi[sex]^dt[k]
++         }
++         ## dispersal parameters
++         dmean[sex] ~ dunif(0, 100)
++         dlambda[sex] <- 1/dmean[sex]
++     }
++     for(i in 1:nInd) {
++         S[i, 1, first[i]] ~ dunif(xlow[i], xupp[i])  # initial center of activity (x)
++         S[i, 2, first[i]] ~ dunif(ylow[i], yupp[i])  # initial center of activity (y)
++         for(k in first[i]:last[i]) {
++             D[i, k, 1:R] <- sqrt((S[i, 1, k] - X[1:R, 1])^2 + (S[i, 2, k] - X[1:R, 2])^2)
++             g[i, k, 1:R] <- exp(-(D[i, k, 1:R]/sigma[gr[i]])^kappa[gr[i]])  # trap exposure
++             G[i, k] <- sum(g[i, k, 1:R])                                    # total trap exposure
++         }
++         for(k in first[i]:(last[i]-1)) {
++             theta[i, k] ~ dunif(-3.141593, 3.141593)   # dispersal direction
++             d[i, k] ~ dexp(dlambda[gr[i]])
++             S[i, 1, k+1] <- S[i, 1, k] + d[i, k] * cos(theta[i, k])
++             S[i, 2, k+1] <- S[i, 2, k] + d[i, k] * sin(theta[i, k])
++         }
++         ## likelihood
++         H[i, 1:nSecondary, 1:nPrimary] ~ dSCR2(
++             first = first[i], last = last[i], J = J[i,1:nPrimary],
++             lambda = lambda[1:2,gr[i]], tod = tod[1:nPrimary,1:nSecondary],
++             g = g[i,1:nPrimary,1:R], G = G[i,1:nPrimary],
++             z = z[i,1:nPrimary], phi = phi[gr[i],1:(nPrimary-1)])
++     }
++ })
+> 
+> ## define custom distribution
+> dSCR2 <- nimbleFunction(
++     run = function(x = double(2),
++         first = double(), last = double(), J = double(1),
++         lambda = double(1), tod = double(2),
++         g = double(2), G = double(1), z = double(1), phi = double(1),
++         log = double()) {
++         pDead <- 0
++         pAlive <- 1
++         lp <- 0
++         ## probability of surviving from k to (k+1): phi[k]
++         for(k in first:last) {
++             if(z[k] == 1) {    # known to be alive
++                 for(j in 1:J[k]) {
++                     PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
++                     if(k > first)       # survived
++                         lp <- lp + log(phi[k-1])
++                     if(x[j,k] == 1) {   # not captured
++                         lp <- lp + log(PnoCaptureGivenAlive)
++                     } else {            # captured
++                         lp <- lp + log(1-PnoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
++                     }
++                 }
++             } else {           # could be dead or alive
++                 pTheseNonSightings <- 1
++                 for(j in 1:J[k]) {
++                     ##if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
++                     ##if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
++                     PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
++                     pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
++                 }
++                 pDead <- pDead + pAlive * (1-phi[k-1])
++                 pAlive <- pAlive * phi[k-1] * pTheseNonSightings
++             }
++         }
++         lp <- lp + log(pDead + pAlive)
++         ##            for(j in 1:J[k]) {    # secondary session
++         ##                ## PnoCapture|not alive = 1
++         ##                ## PnoCapture|alive = exp(-lambda[tod[k,j]] * G[k])
++         ##                pTheseNonSightings <- 1
++         ##                PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
++         ##                if(z[k] == 1) {    # known to be alive
++         ##                    if(k > first)       # survived
++         ##                        lp <- lp + log(phi[k-1])
++         ##                    if(x[j,k] == 1) {   # not captured
++         ##                        lp <- lp + log(PnoCaptureGivenAlive)
++         ##                    } else {            # captured
++         ##                        lp <- lp + log(1-PnoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
++         ##                    }
++         ##                } else {           # could be dead or alive
++         ##                    if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
++         ##                    if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
++         ##                    pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
++         ##                }
++         ##            }
++         ##            pDead <- pDead + pAlive * (1-phi[k-1])
++         ##            pAlive <- pAlive * phi[k-1] * pTheseNonSightings
++         ##        }
++         ##        lp <- lp + log(pDead + pAlive)
++         returnType(double())
++         if(log) return(lp) else return(exp(lp))
++     }
++ )
+> 
+> rSCR2 <- nimbleFunction(
++     run = function(n = integer(),
++         first = double(), last = double(), J = double(1),
++         lambda = double(1), tod = double(2),
++         g = double(2), G = double(1), z = double(1), phi = double(1)) {
++         x <- array(1, c(dim(tod)[2], dim(tod)[1]))
++         returnType(double(2))
++         return(x)
++     }
++ )
+> 
+> registerDistributions(list(
++     dSCR2 = list(
++         BUGSdist = 'dSCR2(first, last, J, lambda, tod, g, G, z, phi)',
++         types = c('value = double(2)', 'first = double()', 'last = double()', 'J = double(1)', 'lambda = double(1)', 'tod = double(2)', 'g = double(2)', 'G = double(1)', 'z = double(1)', 'phi = double(1)'),
++         discrete = TRUE,
++         mixedSizes = TRUE
++     )
++ ))
+Registering the following user-provided distributions: dSCR2 .
+> 
+> 
+> constants_dSCR2 <- constants[c('R', 'J', 'tod', 'first', 'X',
++                                'dt', 'gr', 'xlow', 'xupp', 'ylow', 'yupp')]
+> constants_dSCR2$z          <- inits$z
+> constants_dSCR2$last       <- constants$K
+> constants_dSCR2$nInd       <- dim(constants$H)[1]
+> constants_dSCR2$nPrimary   <- dim(constants$H)[3]
+> constants_dSCR2$nSecondary <- dim(constants$H)[2]
+> data_dSCR2 <- list(H=constants$H)
+> zInd <- which(names(inits) == 'z')
+> inits_dSCR2 <- inits[-zInd]
+> 
+> 
+> 
+> 
+> 
+> 
+> modelInfo_dSCR2 <- list(code = code_dSCR2, constants = constants_dSCR2, data=data_dSCR2, inits = inits_dSCR2, name = 'SCR2')
+> out_dSCR2 <- compareMCMCs(modelInfo=modelInfo_dSCR2, monitors=monitors, niter=niter)
+Working on SCR2 
+defining model...
+Adding J,tod,X,z as data for building model.
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+warning: value of right hand side only node not initialized
+|-------------|-------------|-------------|-------------|
+|-------------------------------------------------------|
+> save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = saveFile)
+> 
+> 
+> 
+> 
+> message('finished SCR2')
+finished SCR2
+> 
+> 
+> 
+> if(TRUE) {
++     
++     saveFile <- 'results_reduced.RData'    
++     load(saveFile)
++     if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
++ 
++     ## rename results
++     out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
++     out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
++ 
++     ## combine results
++     results <- combine_MCMC_comparison_results(out_jags[[1]], out_nimble[[1]], out_dSCR1[[1]], out_dSCR2[[1]])
++ 
++     ## make comparison pages
++     make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
++ 
++     ##make_MCMC_comparison_pages(results, dir = 'pages')##, pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
++ 
++     ##system('open pages/MCMCresults.html')
++ 
++ }
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+     user    system   elapsed 
+52503.308    61.488 52569.007 
