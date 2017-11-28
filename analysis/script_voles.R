@@ -413,6 +413,8 @@ if(FALSE) {
     load('results_reduced3.RData')
     ls()
     XXXXXX remove everything from workspace
+    rrr
+    ls()
     load('results_reduced2.RData')
     ls()
     load('results_reduced3.RData')
