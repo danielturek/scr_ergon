@@ -295,34 +295,28 @@ dSCR2 <- nimbleFunction(
         lambda = double(1), tod = double(2),
         g = double(2), G = double(1), z = double(1), phi = double(1),
         log = double()) {
-#############pDead <- 0
-#############pAlive <- 1
         pAlive <- 1
         pDead <- 0
         lp <- 0
         ## probability of surviving from k to (k+1): phi[k]
         for(k in first:last) {
             if(z[k] == 1) {    # known to be alive
+                if(k > first)           # survived
+                    lp <- lp + log(phi[k-1])
                 for(j in 1:J[k]) {
-                    PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
-                    if(k > first)       # survived
-                        lp <- lp + log(phi[k-1])
+                    pNoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
                     if(x[j,k] == 1) {   # not captured
-                        lp <- lp + log(PnoCaptureGivenAlive)
+                        lp <- lp + log(pNoCaptureGivenAlive)
                     } else {            # captured
-                        lp <- lp + log(1-PnoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
+                        lp <- lp + log(1-pNoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
                     }
                 }
             } else {           # could be dead or alive
                 pTheseNonSightings <- 1
                 for(j in 1:J[k]) {
-                    ##if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
-                    ##if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
-                    PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
-                    pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
+                    pNoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
+                    pTheseNonSightings <- pTheseNonSightings * pNoCaptureGivenAlive
                 }
-###############pDead <- pDead + pAlive * (1-phi[k-1])
-###############pAlive <- pAlive * phi[k-1] * pTheseNonSightings
                 pAlive_new <- phi[k-1] * pAlive
                 pDead_new <- (1-phi[k-1]) * pAlive + pDead
                 L <- pAlive_new * pTheseNonSightings + pDead_new
@@ -331,30 +325,6 @@ dSCR2 <- nimbleFunction(
                 lp <- lp + log(L)
             }
         }
-###########lp <- lp + log(pDead + pAlive)
-        ##            for(j in 1:J[k]) {    # secondary session
-        ##                ## PnoCapture|not alive = 1
-        ##                ## PnoCapture|alive = exp(-lambda[tod[k,j]] * G[k])
-        ##                pTheseNonSightings <- 1
-        ##                PnoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
-        ##                if(z[k] == 1) {    # known to be alive
-        ##                    if(k > first)       # survived
-        ##                        lp <- lp + log(phi[k-1])
-        ##                    if(x[j,k] == 1) {   # not captured
-        ##                        lp <- lp + log(PnoCaptureGivenAlive)
-        ##                    } else {            # captured
-        ##                        lp <- lp + log(1-PnoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
-        ##                    }
-        ##                } else {           # could be dead or alive
-        ##                    if(x[j,k] != 1)    print('XXXXXXXXXXXXXX')   ## means z=0, but was captured.
-        ##                    if(k == first)     print('YYYYYYYYYYYYYY')   ## means z=0, on first occasion
-        ##                    pTheseNonSightings <- pTheseNonSightings * PnoCaptureGivenAlive
-        ##                }
-        ##            }
-        ##            pDead <- pDead + pAlive * (1-phi[k-1])
-        ##            pAlive <- pAlive * phi[k-1] * pTheseNonSightings
-        ##        }
-        ##        lp <- lp + log(pDead + pAlive)
         returnType(double())
         if(log) return(lp) else return(exp(lp))
     }
