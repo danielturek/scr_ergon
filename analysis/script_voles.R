@@ -381,9 +381,10 @@ message('finished SCR2')
 if(FALSE) {
     
     setwd('~/github/scr_ergon/analysis')
-    saveFile <- 'results_reduced.RData'
-    load(saveFile)
-    if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
+    ls()
+    load('results_all.RData')
+    ls()
+    library(nimble)
     ## rename results
     out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
     out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
@@ -396,9 +397,8 @@ if(FALSE) {
 
     ## without jags:
     setwd('~/github/scr_ergon/analysis')
-    saveFile <- 'results_reduced2.RData'
-    load(saveFile)
-    if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
+    load('results_reduced2.RData')
+    library(nimble)
     ## rename results
     out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
     out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
@@ -419,6 +419,16 @@ if(FALSE) {
     ls()
     load('results_reduced3.RData')
     save(out_nimble, out_dSCR1, out_dSCR2, file = 'results_reduced2.RData')
+
+    ## adding jags results (in 'results_jags')
+    ## into nimble, dSCR1, and dSCR2 results (in 'results_reduced2.RData')
+    setwd('~/github/scr_ergon/analysis')
+    load('results_jags.RData')
+    ls()
+    load('results_reduced2.RData')
+    ls()
+    save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = 'results_all.RData')
+    
 
 }
 

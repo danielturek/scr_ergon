@@ -615,7 +615,8 @@ samplesSummary(samples)
 
 samplesPlot(samples)
 
-
+library(coda)
+apply(samples, 2, effectiveSize)
 
 
 
