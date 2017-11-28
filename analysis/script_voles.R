@@ -378,7 +378,7 @@ message('finished SCR2')
 
 
 
-if(TRUE) {
+if(FALSE) {
     
     setwd('~/github/scr_ergon/analysis')
     saveFile <- 'results_reduced.RData'
@@ -407,6 +407,16 @@ if(TRUE) {
     ## make comparison pages
     make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
 
+    ## adding dSCR2 results (from 'results_reduced3.RData') to
+    ## nimble and dSCR1 results (in 'results_reduced2.RData')
+    setwd('~/github/scr_ergon/analysis')
+    load('results_reduced3.RData')
+    ls()
+    XXXXXX remove everything from workspace
+    load('results_reduced2.RData')
+    ls()
+    load('results_reduced3.RData')
+    save(out_nimble, out_dSCR1, out_dSCR2, file = 'results_reduced2.RData')
 
 }
 
