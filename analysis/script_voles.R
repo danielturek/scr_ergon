@@ -393,8 +393,9 @@ if(FALSE) {
     ## combine results
     results <- combine_MCMC_comparison_results(out_jags[[1]], out_nimble[[1]], out_dSCR1[[1]], out_dSCR2[[1]])
     ## make comparison pages
-    make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
+    make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = TRUE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
     system('open pages/MCMCresults.html')
+    save(out_jags, out_nimble, out_dSCR1, out_dSCR2, results, file = 'results_all.RData')
 
     ## without jags:
     setwd('~/github/scr_ergon/analysis')
@@ -406,7 +407,7 @@ if(FALSE) {
     ## combine results
     results <- combine_MCMC_comparison_results(out_nimble[[1]], out_dSCR1[[1]], out_dSCR2[[1]])
     ## make comparison pages
-    make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
+    make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = TRUE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
 
     ## adding dSCR2 results (from 'results_reduced3.RData') to
     ## nimble and dSCR1 results (in 'results_reduced2.RData')
@@ -450,6 +451,20 @@ if(FALSE) {
     out_jags$jags$timing
     out_dSCR2 <- out_dSCR2_save
     save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = 'results_all.RData')
+
+
+    ## looking at "average" improvement in Efficieny between:
+    ## nimble vs. jags
+    ## dSCRx vs. nimble
+    setwd('~/github/scr_ergon/analysis')
+    load('results_all.RData')
+    unlist(out_nimble$nimble$efficiency)
+    unlist(out_jags$jags$efficiency)
+    unlist(out_dSCR1$SCR1$efficiency)
+    unlist(out_dSCR2$SCR2$efficiency)
+    unlist(out_nimble$nimble$efficiency) / unlist(out_jags$jags$efficiency)
+    unlist(out_dSCR2$SCR2$efficiency) / unlist(out_nimble$nimble$efficiency)
+
 
 
 }
