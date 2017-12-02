@@ -9,13 +9,13 @@ monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
 
 
 
-load('volesData_reduced.RData')
-constants <- constants_reduced
-data <- data_reduced
-inits <- inits_reduced
+##load('volesData_reduced.RData')
+##constants <- constants_reduced
+##data <- data_reduced
+##inits <- inits_reduced
 
 
-##load('volesData.RData')
+load('volesData.RData')
 
 
 
@@ -580,7 +580,7 @@ if(FALSE) {
     setwd('~/github/scr_ergon/analysis')
     load('results_reduced3.RData')
     ls()
-    XXXXXX remove everything from workspace
+    ## remove everything from workspace
     rrr
     ls()
     load('results_reduced2.RData')
