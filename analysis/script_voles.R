@@ -463,8 +463,11 @@ if(FALSE) {
     unlist(out_dSCR1$SCR1$efficiency)
     unlist(out_dSCR2$SCR2$efficiency)
     unlist(out_nimble$nimble$efficiency) / unlist(out_jags$jags$efficiency)
+    ## min.nimble mean.nimble 
+    ## 4.175435    3.834809 
     unlist(out_dSCR2$SCR2$efficiency) / unlist(out_nimble$nimble$efficiency)
-
+    ## min.SCR2 mean.SCR2 
+    ## 1.723233  2.311017 
 
 
 }
