@@ -1498,3 +1498,28 @@ eff
 
 
 
+system.time(Rmodel <- nimbleModel(code_dSCR3, constants_dSCR3, data_dSCR3, inits_dSCR3, calculate = FALSE))  ## 1.8 seconds
+
+Rmodel$calculate()
+
+system.time(lp <- Rmodel$calculate())    ## .05 second
+lp  ##  -181.7042
+
+## NOTE: 'log.lambda0' changed to 'lambda0'
+monitors = c('kappa', 'sigma', 'lambda0', 'beta', 'dmean', 'phi', 'Phi')
+
+system.time(conf <- configureMCMC(Rmodel, monitors = monitors))  ## 0.1 seconds
+conf$printSamplers()
+system.time(Rmcmc <- buildMCMC(conf))  ## 0.25 seconds
+
+system.time(Cmodel <- compileNimble(Rmodel, showCompilerOutput = TRUE))   ## 15 seconds
+system.time(Cmcmc <- compileNimble(Rmcmc, project = Rmodel, showCompilerOutput = TRUE))   ## 4.5 seconds
+
+system.time(lp <- Cmodel$calculate())    ## 0.02 seconds
+lp    ##  -181.7042
+
+niter <- 20000
+
+
+
+
