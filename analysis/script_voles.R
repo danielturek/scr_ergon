@@ -2,27 +2,30 @@
 setwd('~/github/scr_ergon/analysis')
 
 ##niter <- 3000
-niter <- 20000
+niter <- 10000
+##niter <- 20000
+
+##useFullDataset <- TRUE
+useFullDataset <- FALSE
 
 saveFile <- 'results_scr3.RData'
+
+
+
 monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
+outList <- list()
+
+if(useFullDataset) {
+    load('volesData.RData')
+} else {
+    load('volesData_reduced.RData')
+    constants <- constants_reduced
+    data <- data_reduced
+    inits <- inits_reduced
+}
 
 
 
-##load('volesData_reduced.RData')
-##constants <- constants_reduced
-##data <- data_reduced
-##inits <- inits_reduced
-
-
-load('volesData.RData')
-
-
-
-
-
-
-message('starting NIMBLE')
 
 
 
@@ -113,18 +116,18 @@ code <- nimbleCode({
 
 
 
-##modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
-##out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)
-##save(out_jags, file = saveFile)
-## 
-##message('finished JAGS')
+modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
+out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)
+outList$out_jags <- out_jags
+save(outList, file = saveFile)
+message('finished JAGS')
 
 
-##modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
-##out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)
-##save(out_jags, out_nimble, file = saveFile)
-## 
-##message('finished NIMBLE')
+modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
+out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)
+outList$out_nimble <- out_nimble
+save(outList, file = saveFile)
+message('finished NIMBLE')
 
 
 
@@ -232,9 +235,9 @@ inits_dSCR1 <- inits
 
 modelInfo_dSCR1 <- list(code = code_dSCR1, constants = constants_dSCR1, data=data_dSCR1, inits = inits_dSCR1, name = 'SCR1')
 out_dSCR1 <- compareMCMCs(modelInfo=modelInfo_dSCR1, monitors=monitors, niter=niter)
-##save(out_jags, out_nimble, out_dSCR1, file = saveFile)
-save(out_dSCR1, file = saveFile)
-
+out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
+outList$out_dSCR1 <- out_dSCR1
+save(outList, file = saveFile)
 message('finished SCR1')
 
 
@@ -366,9 +369,9 @@ inits_dSCR2 <- inits[-zInd]
 
 modelInfo_dSCR2 <- list(code = code_dSCR2, constants = constants_dSCR2, data=data_dSCR2, inits = inits_dSCR2, name = 'SCR2')
 out_dSCR2 <- compareMCMCs(modelInfo=modelInfo_dSCR2, monitors=monitors, niter=niter)
-##save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = saveFile)
-save(out_dSCR1, out_dSCR2, file = saveFile)
-
+out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
+outList$out_dSCR2 <- out_dSCR2
+save(outList, file = saveFile)
 message('finished SCR2')
 
 
@@ -533,9 +536,9 @@ inits_dSCR3$S <- Sinit
 
 modelInfo_dSCR3 <- list(code = code_dSCR3, constants = constants_dSCR3, data=data_dSCR3, inits = inits_dSCR3, name = 'SCR3')
 out_dSCR3 <- compareMCMCs(modelInfo=modelInfo_dSCR3, monitors=monitors, niter=niter)
-##save(out_jags, out_nimble, out_dSCR1, out_dSCR2, out_dSCR3, file = saveFile)
-save(out_dSCR1, out_dSCR2, out_dSCR3, file = saveFile)
-
+out_dSCR3[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR3', out_dSCR3[[1]])
+outList$out_dSCR3 <- out_dSCR3
+save(outList, file = saveFile)
 message('finished SCR3')
 
 
@@ -649,6 +652,19 @@ if(FALSE) {
     ## make comparison pages
     make_MCMC_comparison_pages(results, dir = 'pages_scr3', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE), control = list(mainPageName = 'scr3'))
     system('open pages_scr3/MCMCresults.html')
+
+
+    ## make comparisons pages from 'outList'
+    setwd('~/github/scr_ergon/analysis')
+    load('results_scr3.RData')
+    names(outList)
+    library(nimble)
+    ## combine results
+    results <- do.call(combine_MCMC_comparison_results, outList)
+    ## make comparison pages
+    make_MCMC_comparison_pages(results, dir = 'pages_scr3', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE), control = list(mainPageName = 'scr3'))
+    system('open pages_scr3/MCMCresults.html')
+
     
 
 
