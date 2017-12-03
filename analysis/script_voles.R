@@ -2,18 +2,17 @@
 setwd('~/github/scr_ergon/analysis')
 
 ##niter <- 3000
-niter <- 10000
-##niter <- 20000
+##niter <- 10000
+niter <- 20000
 
-##useFullDataset <- TRUE
-useFullDataset <- FALSE
+useFullDataset <- TRUE
+##useFullDataset <- FALSE
 
 saveFile <- 'results_scr3.RData'
 
 
 
 monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
-outList <- list()
 
 if(useFullDataset) {
     load('volesData.RData')
@@ -25,9 +24,7 @@ if(useFullDataset) {
 }
 
 
-
-
-
+outList <- list()
 
 
 if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
@@ -116,18 +113,18 @@ code <- nimbleCode({
 
 
 
-modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
-out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)[[1]]
-outList$jags <- out_jags
-save(outList, file = saveFile)
-message('finished JAGS')
+##modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
+##out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)[[1]]
+##outList$jags <- out_jags
+##save(outList, file = saveFile)
+##message('finished JAGS')
 
 
-modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
-out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)[[1]]
-outList$nimble <- out_nimble
-save(outList, file = saveFile)
-message('finished NIMBLE')
+##modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
+##out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)[[1]]
+##outList$nimble <- out_nimble
+##save(outList, file = saveFile)
+##message('finished NIMBLE')
 
 
 
@@ -442,7 +439,6 @@ registerDistributions(list(
     dS3 = list(
         BUGSdist = 'dS3(S, lambda)',
         types = c('value = double(1)', 'S = double(1)', 'lambda = double()'),
-        discrete = TRUE,
         mixedSizes = TRUE
     )
 ))
@@ -535,7 +531,7 @@ inits_dSCR3$S <- Sinit
 
 
 modelInfo_dSCR3 <- list(code = code_dSCR3, constants = constants_dSCR3, data=data_dSCR3, inits = inits_dSCR3, name = 'SCR3')
-out_dSCR3 <- compareMCMCs(modelInfo=modelInfo_dSCR3, monitors=monitors, niter=niter)[[1]]
+out_dSCR3 <- compareMCMCs(modelInfo=modelInfo_dSCR3, monitors=monitors, niter=niter, MCMCs = 'nimbleScalar', MCMCdefs = list(nimbleScalar = quote({conf <- configureMCMC(Rmodel, multivariateNodesAsScalars = TRUE); conf$printSamplers(); conf})))[[1]]
 out_dSCR3 <- rename_MCMC_comparison_method('nimble', 'SCR3', out_dSCR3)
 outList$SCR3 <- out_dSCR3
 save(outList, file = saveFile)
