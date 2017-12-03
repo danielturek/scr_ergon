@@ -9,13 +9,13 @@ monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
 
 
 
-load('volesData_reduced.RData')
-constants <- constants_reduced
-data <- data_reduced
-inits <- inits_reduced
+##load('volesData_reduced.RData')
+##constants <- constants_reduced
+##data <- data_reduced
+##inits <- inits_reduced
 
 
-##load('volesData.RData')
+load('volesData.RData')
 
 
 
