@@ -21,28 +21,30 @@ Type 'q()' to quit R.
 > setwd('~/github/scr_ergon/analysis')
 > 
 > ##niter <- 3000
-> niter <- 20000
+> niter <- 10000
+> ##niter <- 20000
+> 
+> ##useFullDataset <- TRUE
+> useFullDataset <- FALSE
 > 
 > saveFile <- 'results_scr3.RData'
+> 
+> 
+> 
 > monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
+> outList <- list()
+> 
+> if(useFullDataset) {
++     load('volesData.RData')
++ } else {
++     load('volesData_reduced.RData')
++     constants <- constants_reduced
++     data <- data_reduced
++     inits <- inits_reduced
++ }
 > 
 > 
 > 
-> ##load('volesData_reduced.RData')
-> ##constants <- constants_reduced
-> ##data <- data_reduced
-> ##inits <- inits_reduced
-> 
-> 
-> load('volesData.RData')
-> 
-> 
-> 
-> 
-> 
-> 
-> message('starting NIMBLE')
-starting NIMBLE
 > 
 > 
 > 
@@ -143,18 +145,50 @@ The following object is masked from ‘package:stats’:
 > 
 > 
 > 
-> ##modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
-> ##out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)
-> ##save(out_jags, file = saveFile)
-> ## 
-> ##message('finished JAGS')
+> modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'jags')
+> out_jags <- compareMCMCs(modelInfo=modelInfo, MCMCs = 'jags', monitors=monitors, niter=niter)[[1]]
+Working on jags 
+defining model...
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 48
+   Unobserved stochastic nodes: 44
+   Total graph size: 32002
+
+Initializing model
+
+> outList$jags <- out_jags
+> save(outList, file = saveFile)
+> message('finished JAGS')
+finished JAGS
 > 
 > 
-> ##modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
-> ##out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)
-> ##save(out_jags, out_nimble, file = saveFile)
-> ## 
-> ##message('finished NIMBLE')
+> modelInfo <- list(code = code, constants = constants, data=data, inits = inits, name = 'nimble')
+> out_nimble <- compareMCMCs(modelInfo=modelInfo, monitors=monitors, niter=niter)[[1]]
+Working on nimble 
+defining model...
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
+compilation finished.
+|-------------|-------------|-------------|-------------|
+|-------------------------------------------------------|
+> outList$nimble <- out_nimble
+> save(outList, file = saveFile)
+> message('finished NIMBLE')
+finished NIMBLE
 > 
 > 
 > 
@@ -262,7 +296,7 @@ Registering the following user-provided distributions: dSCR1 .
 > 
 > 
 > modelInfo_dSCR1 <- list(code = code_dSCR1, constants = constants_dSCR1, data=data_dSCR1, inits = inits_dSCR1, name = 'SCR1')
-> out_dSCR1 <- compareMCMCs(modelInfo=modelInfo_dSCR1, monitors=monitors, niter=niter)
+> out_dSCR1 <- compareMCMCs(modelInfo=modelInfo_dSCR1, monitors=monitors, niter=niter)[[1]]
 Working on SCR1 
 defining model...
 Adding J,tod,X as data for building model.
@@ -278,9 +312,9 @@ compilation finished.
 warning: value of right hand side only node not initialized
 |-------------|-------------|-------------|-------------|
 |-------------------------------------------------------|
-> ##save(out_jags, out_nimble, out_dSCR1, file = saveFile)
-> save(out_dSCR1, file = saveFile)
-> 
+> out_dSCR1 <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1)
+> outList$SCR1 <- out_dSCR1
+> save(outList, file = saveFile)
 > message('finished SCR1')
 finished SCR1
 > 
@@ -413,7 +447,7 @@ Registering the following user-provided distributions: dSCR2 .
 > 
 > 
 > modelInfo_dSCR2 <- list(code = code_dSCR2, constants = constants_dSCR2, data=data_dSCR2, inits = inits_dSCR2, name = 'SCR2')
-> out_dSCR2 <- compareMCMCs(modelInfo=modelInfo_dSCR2, monitors=monitors, niter=niter)
+> out_dSCR2 <- compareMCMCs(modelInfo=modelInfo_dSCR2, monitors=monitors, niter=niter)[[1]]
 Working on SCR2 
 defining model...
 Adding J,tod,X,z as data for building model.
@@ -429,9 +463,9 @@ compilation finished.
 warning: value of right hand side only node not initialized
 |-------------|-------------|-------------|-------------|
 |-------------------------------------------------------|
-> ##save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = saveFile)
-> save(out_dSCR1, out_dSCR2, file = saveFile)
-> 
+> out_dSCR2 <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2)
+> outList$SCR2 <- out_dSCR2
+> save(outList, file = saveFile)
 > message('finished SCR2')
 finished SCR2
 > 
@@ -485,7 +519,7 @@ finished SCR2
 > dS3 <- nimbleFunction(
 +     run = function(x = double(1), S = double(1), lambda = double(), log = double()) {
 +         D <- sqrt((x[1]-S[1])^2 + (x[2]-S[2])^2)
-+         lp <- dexp(D, lambda)
++         lp <- dexp(D, lambda, log = TRUE)
 +         returnType(double())
 +         return(lp)
 +     }
@@ -598,7 +632,7 @@ Registering the following user-provided distributions: dSCR3 .
 > 
 > 
 > modelInfo_dSCR3 <- list(code = code_dSCR3, constants = constants_dSCR3, data=data_dSCR3, inits = inits_dSCR3, name = 'SCR3')
-> out_dSCR3 <- compareMCMCs(modelInfo=modelInfo_dSCR3, monitors=monitors, niter=niter)
+> out_dSCR3 <- compareMCMCs(modelInfo=modelInfo_dSCR3, monitors=monitors, niter=niter)[[1]]
 Working on SCR3 
 defining model...
 Adding J,tod,X,z as data for building model.
@@ -614,9 +648,9 @@ compilation finished.
 warning: value of right hand side only node not initialized
 |-------------|-------------|-------------|-------------|
 |-------------------------------------------------------|
-> ##save(out_jags, out_nimble, out_dSCR1, out_dSCR2, out_dSCR3, file = saveFile)
-> save(out_dSCR1, out_dSCR2, out_dSCR3, file = saveFile)
-> 
+> out_dSCR3 <- rename_MCMC_comparison_method('nimble', 'SCR3', out_dSCR3)
+> outList$SCR3 <- out_dSCR3
+> save(outList, file = saveFile)
 > message('finished SCR3')
 finished SCR3
 > 
@@ -645,61 +679,6 @@ finished SCR3
 +     system('open pages/MCMCresults.html')
 +     save(out_jags, out_nimble, out_dSCR1, out_dSCR2, results, file = 'results_all.RData')
 + 
-+     ## without jags:
-+     setwd('~/github/scr_ergon/analysis')
-+     load('results_reduced2.RData')
-+     library(nimble)
-+     ## rename results
-+     out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
-+     out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
-+     ## combine results
-+     results <- combine_MCMC_comparison_results(out_nimble[[1]], out_dSCR1[[1]], out_dSCR2[[1]])
-+     ## make comparison pages
-+     make_MCMC_comparison_pages(results, dir = 'pages', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
-+ 
-+     ## adding dSCR2 results (from 'results_reduced3.RData') to
-+     ## nimble and dSCR1 results (in 'results_reduced2.RData')
-+     setwd('~/github/scr_ergon/analysis')
-+     load('results_reduced3.RData')
-+     ls()
-+     ## remove everything from workspace
-+     rrr
-+     ls()
-+     load('results_reduced2.RData')
-+     ls()
-+     load('results_reduced3.RData')
-+     save(out_nimble, out_dSCR1, out_dSCR2, file = 'results_reduced2.RData')
-+ 
-+     ## adding jags results (in 'results_jags')
-+     ## into nimble, dSCR1, and dSCR2 results (in 'results_reduced2.RData')
-+     setwd('~/github/scr_ergon/analysis')
-+     load('results_jags.RData')
-+     ls()
-+     load('results_reduced2.RData')
-+     ls()
-+     save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = 'results_all.RData')
-+     
-+ 
-+ 
-+     rrr
-+     setwd('~/github/scr_ergon/analysis')
-+     ls()
-+     load('results_noJags.RData')
-+     ls()
-+     out_nimble$nimble$timing
-+     out_dSCR1$SCR1$timing
-+     out_dSCR2$SCR2$timing
-+     out_dSCR2_save <- out_dSCR2
-+     rrr
-+     load('results_reduced.RData')   ## dSCR2 is wrong here
-+     ls()
-+     out_nimble$nimble$timing
-+     out_dSCR1$SCR1$timing
-+     out_dSCR2$SCR2$timing
-+     out_jags$jags$timing
-+     out_dSCR2 <- out_dSCR2_save
-+     save(out_jags, out_nimble, out_dSCR1, out_dSCR2, file = 'results_all.RData')
-+ 
 + 
 +     ## looking at "average" improvement in Efficieny between:
 +     ## nimble vs. jags
@@ -717,20 +696,18 @@ finished SCR3
 +     ## min.SCR2 mean.SCR2 
 +     ## 1.723233  2.311017
 + 
-+     ## compare and look at dSCR1, dSCR2, and dSCR3
++ 
++     ## make comparisons pages from 'outList'
 +     setwd('~/github/scr_ergon/analysis')
 +     load('results_scr3.RData')
-+     ls()
++     names(outList)
 +     library(nimble)
-+     ## rename results
-+     out_dSCR1[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR1', out_dSCR1[[1]])
-+     out_dSCR2[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR2', out_dSCR2[[1]])
-+     out_dSCR3[[1]] <- rename_MCMC_comparison_method('nimble', 'SCR3', out_dSCR3[[1]])
 +     ## combine results
-+     results <- combine_MCMC_comparison_results(out_dSCR1[[1]], out_dSCR2[[1]], out_dSCR3[[1]])
++     results <- do.call(combine_MCMC_comparison_results, unname(outList))
 +     ## make comparison pages
 +     make_MCMC_comparison_pages(results, dir = 'pages_scr3', pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE), control = list(mainPageName = 'scr3'))
 +     system('open pages_scr3/MCMCresults.html')
++ 
 +     
 + 
 + 
@@ -753,5 +730,5 @@ finished SCR3
 > 
 > 
 > proc.time()
-    user   system  elapsed 
-9024.088   18.524 9044.403 
+   user  system elapsed 
+581.856   7.696 592.933 
