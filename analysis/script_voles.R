@@ -9,13 +9,13 @@ monitors <- c("kappa", "sigma", "lambda0", "beta", "dmean", "phi", "Phi")
 
 
 
-##load('volesData_reduced.RData')
-##constants <- constants_reduced
-##data <- data_reduced
-##inits <- inits_reduced
+load('volesData_reduced.RData')
+constants <- constants_reduced
+data <- data_reduced
+inits <- inits_reduced
 
 
-load('volesData.RData')
+##load('volesData.RData')
 
 
 
@@ -421,7 +421,7 @@ code_dSCR3 <- nimbleCode({
 dS3 <- nimbleFunction(
     run = function(x = double(1), S = double(1), lambda = double(), log = double()) {
         D <- sqrt((x[1]-S[1])^2 + (x[2]-S[2])^2)
-        lp <- dexp(D, lambda)
+        lp <- dexp(D, lambda, log = TRUE)
         returnType(double())
         return(lp)
     }
