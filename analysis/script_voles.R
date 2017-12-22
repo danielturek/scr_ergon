@@ -532,7 +532,7 @@ inits_dSCR3$S <- Sinit
 
 modelInfo_dSCR3 <- list(code = code_dSCR3, constants = constants_dSCR3, data=data_dSCR3, inits = inits_dSCR3, name = 'SCR3')
 out_dSCR3 <- compareMCMCs(modelInfo=modelInfo_dSCR3, monitors=monitors, niter=niter, MCMCs = 'nimbleScalar', MCMCdefs = list(nimbleScalar = quote({conf <- configureMCMC(Rmodel, multivariateNodesAsScalars = TRUE); conf$printSamplers(); conf})))[[1]]
-out_dSCR3 <- rename_MCMC_comparison_method('nimble', 'SCR3', out_dSCR3)
+out_dSCR3 <- rename_MCMC_comparison_method('nimbleScalar', 'SCR3', out_dSCR3)
 outList$SCR3 <- out_dSCR3
 save(outList, file = saveFile)
 message('finished SCR3')
