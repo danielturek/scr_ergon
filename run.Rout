@@ -36,8 +36,8 @@ The following object is masked from ‘package:stats’:
 Registering the following user-provided distributions: dSCR1 .
 Registering the following user-provided distributions: dSCR2 .
 > 
-> reduced <- TRUE
-> ##reduced <- FALSE
+> ##reduced <- TRUE
+> reduced <- FALSE
 > 
 > runVoles <- TRUE
 > ##runVoles <- FALSE
@@ -51,7 +51,8 @@ Registering the following user-provided distributions: dSCR2 .
 > 
 > runComparison <- function(modelInfoFile, reduced, name, MCMCs, niter, MCMCdefs = list(), add = FALSE, saveFile, verbose = TRUE) {
 +     if(verbose) message(paste0('running ', MCMCs, ' on ', modelInfoFile, '...'))
-+     if(reduced) modelInfoFileToLoad <- paste0(modelInfoFile, '_reduced')
++     modelInfoFileToLoad <- modelInfoFile
++     if(reduced) modelInfoFileToLoad <- paste0(modelInfoFileToLoad, '_reduced')
 +     modelInfoFileToLoad <- paste0('data/modelInfo_', modelInfoFileToLoad, '.RData')
 +     load(modelInfoFileToLoad)
 +     outList <- if(add) dget(saveFile) else list()
@@ -110,9 +111,9 @@ Compiling model graph
    Resolving undeclared variables
    Allocating nodes
 Graph information:
-   Observed stochastic nodes: 48
-   Unobserved stochastic nodes: 44
-   Total graph size: 32002
+   Observed stochastic nodes: 2297
+   Unobserved stochastic nodes: 1595
+   Total graph size: 1608998
 
 Initializing model
 
@@ -157,5 +158,5 @@ finished running nimble on volesSCR2
 > 
 > 
 > proc.time()
-   user  system elapsed 
-884.560   5.876 891.571 
+    user   system  elapsed 
+52559.84   156.40 52721.86 
