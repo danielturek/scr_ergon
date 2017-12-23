@@ -20,7 +20,8 @@ niter <- 20000
 
 runComparison <- function(modelInfoFile, reduced, name, MCMCs, niter, MCMCdefs = list(), add = FALSE, saveFile, verbose = TRUE) {
     if(verbose) message(paste0('running ', MCMCs, ' on ', modelInfoFile, '...'))
-    if(reduced) modelInfoFileToLoad <- paste0(modelInfoFile, '_reduced')
+    modelInfoFileToLoad <- modelInfoFile
+    if(reduced) modelInfoFileToLoad <- paste0(modelInfoFileToLoad, '_reduced')
     modelInfoFileToLoad <- paste0('data/modelInfo_', modelInfoFileToLoad, '.RData')
     load(modelInfoFileToLoad)
     outList <- if(add) dget(saveFile) else list()
