@@ -18,9 +18,6 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 Type 'q()' to quit R.
 
 > 
-> 1
-[1] 1
-> 
 > if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
 nimble version 0.6-9 is loaded.
 For more information on NIMBLE and a User Manual,
@@ -45,7 +42,9 @@ Registering the following user-provided distributions: dSCR2 .
 > runVoles <- TRUE
 > ##runVoles <- FALSE
 > 
-> niter <- 5000
+> ##niter <- 3000
+> ##niter <- 10000
+> niter <- 20000
 > 
 > 
 > 
@@ -69,7 +68,6 @@ Registering the following user-provided distributions: dSCR2 .
 > makePages <- function(saveFile, dir, open = TRUE) {
 +     outList <- dget(saveFile)
 +     results <- do.call(combine_MCMC_comparison_results, unname(outList))
-+     ## make comparison pages
 +     pagesDir <- paste0('pages/', dir, '/')
 +     make_MCMC_comparison_pages(results, dir = pagesDir, pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
 +     if(open) system(paste0('open ', pagesDir, 'MCMCresults.html'))
@@ -78,15 +76,12 @@ Registering the following user-provided distributions: dSCR2 .
 > 
 > 
 > if(runVoles) {
-+ 
 +     saveFile <- 'results/voles.rda'
-+ 
 +     runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
-+     ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
 +     runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
 +     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-+ 
-+     makePages(saveFile = saveFile, dir = 'voles')
++     makePages(saveFile = saveFile, dir = 'voles', open = FALSE)
 + }
 running nimble on voles...
 Working on model1 
@@ -103,6 +98,25 @@ compilation finished.
 |-------------|-------------|-------------|-------------|
 |-------------------------------------------------------|
 finished running nimble on voles
+running jags on voles...
+Working on model1 
+defining model...
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 48
+   Unobserved stochastic nodes: 44
+   Total graph size: 32002
+
+Initializing model
+
+finished running jags on voles
 running nimble on volesSCR1...
 Working on model1 
 defining model...
@@ -137,7 +151,6 @@ warning: value of right hand side only node not initialized
 |-------------|-------------|-------------|-------------|
 |-------------------------------------------------------|
 finished running nimble on volesSCR2
-Couldn't get a file descriptor referring to the console
 > 
 > 
 > 
@@ -145,4 +158,4 @@ Couldn't get a file descriptor referring to the console
 > 
 > proc.time()
    user  system elapsed 
-197.832   5.604 204.946 
+884.560   5.876 891.571 
