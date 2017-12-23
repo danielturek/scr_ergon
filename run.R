@@ -1,6 +1,4 @@
 
-1
-
 if(Sys.info()['nodename'] == 'gandalf') library(nimble, lib.loc = '~/Documents/') else library(nimble)
 library(coda)
 
@@ -13,7 +11,9 @@ reduced <- TRUE
 runVoles <- TRUE
 ##runVoles <- FALSE
 
-niter <- 5000
+##niter <- 3000
+##niter <- 10000
+niter <- 20000
 
 
 
@@ -37,7 +37,6 @@ runComparison <- function(modelInfoFile, reduced, name, MCMCs, niter, MCMCdefs =
 makePages <- function(saveFile, dir, open = TRUE) {
     outList <- dget(saveFile)
     results <- do.call(combine_MCMC_comparison_results, unname(outList))
-    ## make comparison pages
     pagesDir <- paste0('pages/', dir, '/')
     make_MCMC_comparison_pages(results, dir = pagesDir, pageComponents = list(timing = TRUE, efficiencySummary = FALSE, efficiencySummaryAllParams = TRUE, paceSummaryAllParams = TRUE, efficiencyDetails = TRUE, posteriorSummary = TRUE))
     if(open) system(paste0('open ', pagesDir, 'MCMCresults.html'))
@@ -46,15 +45,12 @@ makePages <- function(saveFile, dir, open = TRUE) {
 
 
 if(runVoles) {
-
     saveFile <- 'results/voles.rda'
-
     runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
-    ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
     runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-
-    makePages(saveFile = saveFile, dir = 'voles')
+    makePages(saveFile = saveFile, dir = 'voles', open = FALSE)
 }
 
 
