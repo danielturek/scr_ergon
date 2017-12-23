@@ -5,8 +5,8 @@ library(coda)
 system('rm data/*')
 source('create_data_voles.R')
 
-reduced <- TRUE
-##reduced <- FALSE
+##reduced <- TRUE
+reduced <- FALSE
 
 runVoles <- TRUE
 ##runVoles <- FALSE
