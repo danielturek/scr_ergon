@@ -78,63 +78,13 @@ Registering the following user-provided distributions: dSCR2 .
 > 
 > if(runVoles) {
 +     saveFile <- 'results/voles.rda'
-+     runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
-+     runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-+     runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-+     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     ##runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
++     ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     ##runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     ##runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR_new', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
 +     makePages(saveFile = saveFile, dir = 'voles', open = FALSE)
 + }
-running nimble on voles...
-Working on model1 
-defining model...
-building model...
-setting data and initial values...
-running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
-checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
-model building finished.
-compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
-compilation finished.
-compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
-compilation finished.
-|-------------|-------------|-------------|-------------|
-|-------------------------------------------------------|
-finished running nimble on voles
-running jags on voles...
-Working on model1 
-defining model...
-building model...
-setting data and initial values...
-running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
-checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
-model building finished.
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-Graph information:
-   Observed stochastic nodes: 2297
-   Unobserved stochastic nodes: 1595
-   Total graph size: 1608998
-
-Initializing model
-
-finished running jags on voles
-running nimble on volesSCR1...
-Working on model1 
-defining model...
-Adding J,tod,X as data for building model.
-building model...
-setting data and initial values...
-running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
-checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
-model building finished.
-compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
-compilation finished.
-compiling... this may take a minute. Use 'showCompilerOutput = TRUE' to see C++ compiler details.
-compilation finished.
-warning: value of right hand side only node not initialized
-|-------------|-------------|-------------|-------------|
-|-------------------------------------------------------|
-finished running nimble on volesSCR1
 running nimble on volesSCR2...
 Working on model1 
 defining model...
@@ -159,4 +109,4 @@ finished running nimble on volesSCR2
 > 
 > proc.time()
     user   system  elapsed 
-52559.84   156.40 52721.86 
+4052.396    6.676 4060.309 
