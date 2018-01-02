@@ -530,18 +530,33 @@ dSCR2 <- nimbleFunction(
         g = double(2), G = double(1), z = double(1), phi = double(1),
         log = double()) {
         pAlive <- 1
+        pDead <- 0
         lp <- 0
         ## probability of surviving from k to (k+1): phi[k]
-        for(k in first:last) {    # primary session
-            if(z[k] == 0)   pAlive <- pAlive * phi[k-1]
-            for(j in 1:J[k]) {    # secondary session
-                ## PnoCapture|alive = exp(-lambda[tod[k,j]] * G[k])
-                PnoCapture <- (1-pAlive) + (pAlive)*exp(-lambda[tod[k,j]] * G[k])
-                if(x[j,k] == 1) {    # not captured
-                    lp <- lp + log(PnoCapture)
-                } else {             # captured
-                    lp <- lp + log(1-PnoCapture) + log(g[k, x[j,k]-1]) - log(G[k])
+        for(k in first:last) {
+            if(z[k] == 1) {    # known to be alive
+                if(k > first)           # survived
+                    lp <- lp + log(phi[k-1])
+                for(j in 1:J[k]) {
+                    pNoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
+                    if(x[j,k] == 1) {   # not captured
+                        lp <- lp + log(pNoCaptureGivenAlive)
+                    } else {            # captured
+                        lp <- lp + log(1-pNoCaptureGivenAlive) + log(g[k, x[j,k]-1]) - log(G[k])
+                    }
                 }
+            } else {           # could be dead or alive
+                pTheseNonSightings <- 1
+                for(j in 1:J[k]) {
+                    pNoCaptureGivenAlive <- exp(-lambda[tod[k,j]] * G[k])
+                    pTheseNonSightings <- pTheseNonSightings * pNoCaptureGivenAlive
+                }
+                pAlive_new <- phi[k-1] * pAlive
+                pDead_new <- (1-phi[k-1]) * pAlive + pDead
+                L <- pAlive_new * pTheseNonSightings + pDead_new
+                pAlive <- (pAlive_new * pTheseNonSightings) / L
+                pDead <- pDead_new / L
+                lp <- lp + log(L)
             }
         }
         returnType(double())

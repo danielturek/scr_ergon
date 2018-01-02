@@ -47,12 +47,14 @@ makePages <- function(saveFile, dir, open = TRUE) {
 
 if(runVoles) {
     saveFile <- 'results/voles.rda'
-    ##runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
+    
+    runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
     ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    ##runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    ##runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    ##runComparison(modelInfoFile = 'volesSCR2', name = 'SCR_new', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    runComparison(modelInfoFile = 'volesSCR2', name = 'SCR_new2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2_2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    
+    ##makePages(saveFile = saveFile, dir = 'voles', open = TRUE)
     makePages(saveFile = saveFile, dir = 'voles', open = FALSE)
 }
 
