@@ -82,7 +82,8 @@ Registering the following user-provided distributions: dSCR2 .
 +     ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
 +     ##runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
 +     ##runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-+     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR_new', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     ##runComparison(modelInfoFile = 'volesSCR2', name = 'SCR_new', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
++     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR_new2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
 +     makePages(saveFile = saveFile, dir = 'voles', open = FALSE)
 + }
 running nimble on volesSCR2...
@@ -109,4 +110,4 @@ finished running nimble on volesSCR2
 > 
 > proc.time()
     user   system  elapsed 
-4052.396    6.676 4060.309 
+3713.880    5.340 3720.278 
