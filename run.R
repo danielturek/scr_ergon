@@ -19,13 +19,13 @@ niter <- 20000
 
 
 runComparison <- function(modelInfoFile, reduced, name, MCMCs, niter, MCMCdefs = list(), add = FALSE, saveFile, verbose = TRUE) {
-    if(verbose) message(paste0('running ', MCMCs, ' on ', modelInfoFile, '...'))
+    if(length(MCMCs) > 1) stop('only one MCMC at a time, please')
+    if(verbose) message(paste0('running ', name, ' on ', modelInfoFile, '...'))
     modelInfoFileToLoad <- modelInfoFile
     if(reduced) modelInfoFileToLoad <- paste0(modelInfoFileToLoad, '_reduced')
     modelInfoFileToLoad <- paste0('data/modelInfo_', modelInfoFileToLoad, '.RData')
     load(modelInfoFileToLoad)
     outList <- if(add) dget(saveFile) else list()
-    if(length(MCMCs) > 1) stop('only one MCMC at a time, please')
     out <- compareMCMCs(modelInfo = modelInfo, MCMCs = MCMCs, MCMCdefs = MCMCdefs,
                         monitors = modelInfo$monitors, niter = niter)[[1]]
     out <- rename_MCMC_comparison_method(MCMCs, name, out)
@@ -101,12 +101,22 @@ if(FALSE) {
     conf <- configureMCMC(Rmodel)
     conf$printSamplers()
     Rmodel$getNodeNames(stochOnly = TRUE, includeData = FALSE)
+    ##
+    Rmcmc <- buildMCMC(conf)
+    Cmodel <- compileNimble(Rmodel)
+    Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
+    set.seed(0)
+    samples <- runMCMC(Cmcmc, niter)
+    require(coda);    ess <- apply(samples, 2, effectiveSize)
+    require(moments); sk  <- apply(samples, 2, skewness)
+    round(sort(sk), 2)
+    samplesPlot(samples, 'theta[46, 3]')
+    samplesPlot(samples, 'sigma')
+    samplesPlot(samples, 'kappa')
+    samplesPlot(samples, 'beta')
+    samplesPlot(samples, c('PL', 'Phi'))
+    samplesPlot(samples, 'dmean')
 }
-
-
-
-
-
 
 
 
