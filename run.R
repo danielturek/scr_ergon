@@ -31,7 +31,7 @@ runComparison <- function(modelInfoFile, reduced, name, MCMCs, niter, MCMCdefs =
     out <- rename_MCMC_comparison_method(MCMCs, name, out)
     outList[[name]] <- out
     if(!missing(saveFile)) dput(outList, file = saveFile)
-    if(verbose) message(paste0('finished running ', MCMCs, ' on ', modelInfoFile))
+    if(verbose) message(paste0('finished running ', name, ' on ', modelInfoFile))
     return(invisible(outList))
 }
 
@@ -43,20 +43,70 @@ makePages <- function(saveFile, dir, open = TRUE) {
     if(open) system(paste0('open ', pagesDir, 'MCMCresults.html'))
 }
 
-
+makeRmodel <- function(modelInfoFile, reduced) {
+    modelInfoFileToLoad <- modelInfoFile
+    if(reduced) modelInfoFileToLoad <- paste0(modelInfoFileToLoad, '_reduced')
+    modelInfoFileToLoad <- paste0('data/modelInfo_', modelInfoFileToLoad, '.RData')
+    load(modelInfoFileToLoad)
+    Rmodel <- nimbleModel(code = modelInfo$code, constants = modelInfo$constants, data = modelInfo$data, inits = modelInfo$inits)
+    return(Rmodel)
+}
 
 if(runVoles) {
     saveFile <- 'results/voles.rda'
-    
+    ##
     runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
     ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
     runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
     runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2_2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    
+    ##
+    runComparison(modelInfoFile = 'volesSCR2', name = 'dth', MCMCs = 'X', MCMCdefs = list(X = quote({
+        conf <- configureMCMC(Rmodel)
+        conf$removeSamplers(c('d', 'theta'))
+        for(nn in Rmodel$expandNodeNames('theta'))
+            conf$addSampler(c(nn, gsub('theta','d',nn)), 'RW_block', silent = TRUE)
+        conf$printSamplers()
+        conf
+    })), reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    ##
+    runComparison(modelInfoFile = 'volesSCR2', name = 'skb', MCMCs = 'X', MCMCdefs = list(X = quote({
+        conf <- configureMCMC(Rmodel)
+        conf$removeSamplers(c('sigma', 'kappa', 'beta'))
+        conf$addSampler(c('sigma[1]', 'kappa[1]'), 'RW_block', silent = TRUE)
+        conf$addSampler(c('sigma[2]', 'kappa[2]'), 'RW_block', silent = TRUE)
+        conf$addSampler(c('beta[1]',  'beta[2]'),  'RW_block', silent = TRUE)
+        conf$printSamplers()
+        conf
+    })), reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    ##
+    runComparison(modelInfoFile = 'volesSCR2', name = 'SLC', MCMCs = 'X', MCMCdefs = list(X = quote({
+        conf <- configureMCMC(Rmodel)
+        nns <- c('sigma', 'kappa', 'beta', 'PL', 'Phi', 'dmean')
+        conf$removeSamplers(nns)
+        for(nn in Rmodel$expandNodeNames(nns))
+            conf$addSampler(nn, 'slice')
+        conf$printSamplers()
+        conf
+    })), reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
     ##makePages(saveFile = saveFile, dir = 'voles', open = TRUE)
     makePages(saveFile = saveFile, dir = 'voles', open = FALSE)
 }
+
+
+if(FALSE) {
+    modelInfoFile <- 'volesSCR2'
+    reduced <- FALSE
+    reduced <- TRUE
+    Rmodel <- makeRmodel(modelInfoFile = modelInfoFile, reduced = reduced)
+    conf <- configureMCMC(Rmodel)
+    conf$printSamplers()
+    Rmodel$getNodeNames(stochOnly = TRUE, includeData = FALSE)
+}
+
+
+
+
+
 
 
 
