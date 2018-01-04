@@ -55,10 +55,10 @@ makeRmodel <- function(modelInfoFile, reduced) {
 if(runVoles) {
     saveFile <- 'results/voles.rda'
     ##
-    runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
+    ##runComparison(modelInfoFile = 'voles', name = 'nimble', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile)
     ##runComparison(modelInfoFile = 'voles', name = 'jags', MCMCs = 'jags', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
-    runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    ##runComparison(modelInfoFile = 'volesSCR1', name = 'SCR1', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    runComparison(modelInfoFile = 'volesSCR2', name = 'SCR2', MCMCs = 'nimble', reduced = reduced, niter = niter, saveFile = saveFile, add = FALSE)
     ##
     runComparison(modelInfoFile = 'volesSCR2', name = 'dth', MCMCs = 'X', MCMCdefs = list(X = quote({
         conf <- configureMCMC(Rmodel)
@@ -81,6 +81,19 @@ if(runVoles) {
     ##
     runComparison(modelInfoFile = 'volesSCR2', name = 'SLC', MCMCs = 'X', MCMCdefs = list(X = quote({
         conf <- configureMCMC(Rmodel)
+        nns <- c('sigma', 'kappa', 'beta', 'PL', 'Phi', 'dmean')
+        conf$removeSamplers(nns)
+        for(nn in Rmodel$expandNodeNames(nns))
+            conf$addSampler(nn, 'slice')
+        conf$printSamplers()
+        conf
+    })), reduced = reduced, niter = niter, saveFile = saveFile, add = TRUE)
+    ##
+    runComparison(modelInfoFile = 'volesSCR2', name = 'dthSLC', MCMCs = 'X', MCMCdefs = list(X = quote({
+        conf <- configureMCMC(Rmodel)
+        conf$removeSamplers(c('d', 'theta'))
+        for(nn in Rmodel$expandNodeNames('theta'))
+            conf$addSampler(c(nn, gsub('theta','d',nn)), 'RW_block', silent = TRUE)
         nns <- c('sigma', 'kappa', 'beta', 'PL', 'Phi', 'dmean')
         conf$removeSamplers(nns)
         for(nn in Rmodel$expandNodeNames(nns))

@@ -186,8 +186,9 @@ code <- nimbleCode({
 
 
 
-
-monitors <- c('kappa', 'sigma', 'lambda0', 'beta', 'dmean', 'phi', 'Phi')
+## original monitors from Tor:
+##monitors <- c('kappa', 'sigma', 'lambda0', 'beta', 'dmean', 'phi', 'Phi')
+monitors <- c('kappa', 'sigma', 'lambda0', 'beta', 'dmean', 'Phi')
 
 
 
